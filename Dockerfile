@@ -34,6 +34,7 @@ ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
 
 # Clone and build CUDA submodules (self-contained — no local checkout needed)
 RUN git clone --recursive https://github.com/graphdeco-inria/diff-gaussian-rasterization submodules/diff-gaussian-rasterization && \
+    sed -i '1s/^/#include <cstdint>\n/' submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h && \
     pip3 install --no-cache-dir --break-system-packages ./submodules/diff-gaussian-rasterization
 
 RUN git clone --recursive https://github.com/camenduru/simple-knn submodules/simple-knn && \
