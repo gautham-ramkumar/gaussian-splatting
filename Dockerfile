@@ -5,31 +5,40 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Python and build dependencies
 RUN apt-get update && apt-get install -y \
-    python3.10 \
-    python3.10-venv \
+    python3.12 \
+    python3.12-venv \
     python3-pip \
     git \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Set default python
-RUN ln -s /usr/bin/python3.10 /usr/bin/python
+RUN ln -sf /usr/bin/python3.12 /usr/bin/python && \
+    ln -sf /usr/bin/python3.12 /usr/bin/python3
 
 WORKDIR /app
 
-# Copy the pyproject first for caching
+# Copy project source (excluding submodules — cloned fresh below)
 COPY pyproject.toml ./
-
-# Copy everything else (including submodules)
-COPY . .
+COPY src/ ./src/
+COPY train.py evaluate.py render_video.py ./
 
 # PyTorch must be installed before compiling the CUDA submodules
-RUN pip3 install --no-cache-dir --break-system-packages torch torchvision numpy
+RUN pip3 install --no-cache-dir --break-system-packages \
+    torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
-# Install the CUDA-dependent submodules manually
-RUN pip3 install --no-cache-dir --break-system-packages ./submodules/diff-gaussian-rasterization ./submodules/simple-knn
+# Clone and build CUDA submodules (self-contained — no local checkout needed)
+RUN git clone --recursive https://github.com/graphdeco-inria/diff-gaussian-rasterization submodules/diff-gaussian-rasterization && \
+    pip3 install --no-cache-dir --break-system-packages ./submodules/diff-gaussian-rasterization
 
-# Install the package itself in editable mode
+RUN git clone --recursive https://github.com/camenduru/simple-knn submodules/simple-knn && \
+    pip3 install --no-cache-dir --break-system-packages ./submodules/simple-knn
+
+# Install remaining Python dependencies
+RUN pip3 install --no-cache-dir --break-system-packages \
+    numpy Pillow plyfile pytorch-msssim tqdm opencv-python lpips
+
+# Install the package itself
 RUN pip3 install --no-cache-dir --break-system-packages -e .
 
 CMD ["python", "train.py", "--help"]
