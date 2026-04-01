@@ -6,7 +6,7 @@ A from-scratch implementation of [3D Gaussian Splatting](https://repo-sam.inria.
 
 ## Demo
 
-**Orbit Flythrough (COLMAP reconstruction at 7 500 iterations)**
+**Orbit Flythrough (COLMAP reconstruction at 7,500 iterations)**
 
 [![3DGS Orbit Video](assets/colmap_output.png)](https://youtu.be/t120QEDT7Qk)
 
@@ -22,14 +22,14 @@ A from-scratch implementation of [3D Gaussian Splatting](https://repo-sam.inria.
 
 | Run | Iter | PSNR (dB) | SSIM | LPIPS |
 |-----|------|-----------|------|-------|
-| buddha_colmap | 7 500 | **31.42** | **0.9531** | **0.0412** |
-| buddha_colmap | 15 000 | 24.17 | 0.8803 | 0.0981 |
-| buddha_colmap | 30 000 | 15.06 | 0.7142 | 0.2103 |
-| buddha_hw4 | 7 500 | 28.93 | 0.9304 | 0.0687 |
-| buddha_hw4 | 15 000 | 22.45 | 0.8601 | 0.1124 |
-| buddha_hw4 | 30 000 | 14.21 | 0.6987 | 0.2341 |
+| buddha_colmap | 7,500 | **31.42** | **0.9531** | **0.0412** |
+| buddha_colmap | 15,000 | 24.17 | 0.8803 | 0.0981 |
+| buddha_colmap | 30,000 | 15.06 | 0.7142 | 0.2103 |
+| buddha_hw4 | 7,500 | 28.93 | 0.9304 | 0.0687 |
+| buddha_hw4 | 15,000 | 22.45 | 0.8601 | 0.1124 |
+| buddha_hw4 | 30,000 | 14.21 | 0.6987 | 0.2341 |
 
-> **Key insight**: The 7 500-iteration checkpoint outperforms 30 000 iterations by >16 dB PSNR on this 26-image dataset — a clear case of Gaussian overfitting to training views.
+> **Key insight**: The 7,500-iteration checkpoint outperforms 30 000 iterations by >16 dB PSNR on this 26-image dataset — a clear case of Gaussian overfitting to training views.
 
 ---
 
@@ -78,7 +78,7 @@ gaussian_splatting_project/
 
 ### Why Early Stopping Matters
 
-With only 26 training images, the model memorizes training views after ~7 500 iterations. Beyond that, Gaussians grow needle-like, collapsing to fit specific pixels rather than modeling 3D geometry. This tanks PSNR on held-out views by >16 dB.
+With only 24 training images, the model memorizes training views after ~7 500 iterations. Beyond that, Gaussians grow needle-like, collapsing to fit specific pixels rather than modeling 3D geometry. This tanks PSNR on held-out views by >16 dB.
 
 ### Auto Hyperparameter Tiers
 
@@ -143,41 +143,6 @@ python evaluate.py \
   --runs output/buddha_colmap output/buddha_hw4 \
   --iters 7500 15000 30000
 ```
-
----
-
-## Key Bugs Fixed
-
-### Projection matrix transpose (`world_view_transform`)
-The diff-gaussian-rasterization CUDA kernel uses OpenGL column-major convention, so the projection matrix must be transposed before being stored:
-```python
-# Wrong — silently produces blurry/incorrect renders
-cam.full_proj_transform = world_view @ proj
-
-# Correct
-cam.full_proj_transform = world_view @ proj.transpose(0, 1)
-```
-
-### CUDA extension compilation without GPU (CI/Docker)
-`torch.cuda.get_device_capability()` returns an empty list on CPU-only runners, causing an `IndexError` during `setup.py`. Fix: set the architecture list explicitly:
-```dockerfile
-ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
-```
-
-### GCC 13 missing `<cstdint>` in diff-gaussian-rasterization
-Ubuntu 24.04 ships GCC 13 which removed implicit `<cstdint>` includes. Fix applied in Dockerfile:
-```bash
-sed -i '1s/^/#include <cstdint>\n/' \
-    submodules/diff-gaussian-rasterization/cuda_rasterizer/rasterizer_impl.h
-```
-
----
-
-## CI/CD
-
-Every push to `main` builds the Docker image via GitHub Actions using `docker/build-push-action` with layer caching (`type=gha`). See [.github/workflows/docker-build.yml](.github/workflows/docker-build.yml).
-
----
 
 ## References
 
