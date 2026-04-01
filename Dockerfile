@@ -27,6 +27,11 @@ COPY train.py evaluate.py ./
 RUN pip3 install --no-cache-dir --break-system-packages \
     torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
+# Tell nvcc which GPU architectures to compile for.
+# Without this, setup.py calls torch.cuda.get_device_capability() which fails
+# on CI runners (no GPU) and raises IndexError: list index out of range.
+ENV TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0"
+
 # Clone and build CUDA submodules (self-contained — no local checkout needed)
 RUN git clone --recursive https://github.com/graphdeco-inria/diff-gaussian-rasterization submodules/diff-gaussian-rasterization && \
     pip3 install --no-cache-dir --break-system-packages ./submodules/diff-gaussian-rasterization
