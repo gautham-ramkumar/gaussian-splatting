@@ -21,7 +21,7 @@ WORKDIR /app
 # Copy project source (excluding submodules — cloned fresh below)
 COPY pyproject.toml ./
 COPY src/ ./src/
-COPY train.py evaluate.py render_video.py ./
+COPY train.py evaluate.py ./
 
 # PyTorch must be installed before compiling the CUDA submodules
 RUN pip3 install --no-cache-dir --break-system-packages \
