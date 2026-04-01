@@ -17,17 +17,14 @@ RUN ln -s /usr/bin/python3.10 /usr/bin/python
 
 WORKDIR /app
 
-# Copy the requirements and pyproject first for caching
-COPY pyproject.toml requirements.txt ./
-
-# Remove local absolute file:// paths from requirements.txt to avoid Docker build errors
-RUN sed -i '/file:\/\//d' requirements.txt
-
-# Install python dependencies
-RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
+# Copy the pyproject first for caching
+COPY pyproject.toml ./
 
 # Copy everything else (including submodules)
 COPY . .
+
+# PyTorch must be installed before compiling the CUDA submodules
+RUN pip3 install --no-cache-dir --break-system-packages torch torchvision numpy
 
 # Install the CUDA-dependent submodules manually
 RUN pip3 install --no-cache-dir --break-system-packages ./submodules/diff-gaussian-rasterization ./submodules/simple-knn
