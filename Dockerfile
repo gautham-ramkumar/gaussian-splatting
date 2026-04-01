@@ -45,7 +45,6 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     numpy Pillow plyfile pytorch-msssim tqdm opencv-python lpips
 
 # Install project in editable mode
-RUN pip3 install --no-cache-dir --break-system-packages --upgrade setuptools
-RUN pip3 install --no-cache-dir --break-system-packages --no-build-isolation -e .
+RUN pip3 install --no-cache-dir --break-system-packages -e .
 
 CMD ["python", "train.py", "--help"]
