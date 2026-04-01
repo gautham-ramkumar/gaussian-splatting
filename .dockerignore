@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+venv/
+venv_3dgs/
+.venv/
+data/
+output/
+.DS_Store
+.git/
+.github/
+*.deb
+*.log

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "gaussian-splatting"
+version = "0.1.0"
+description = "3D Gaussian Splatting — Buddha & Tanks-and-Temples"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+    "Pillow",
+    "plyfile",
+    "pytorch-msssim",
+    "tqdm",
+    "opencv-python",
+    "lpips",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
